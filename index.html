@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>reads.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f5f4f1;
+  --card:#ffffff;
+  --ink:#18181b;
+  --dim:#9b9b9b;
+  --muted:#c8c8c8;
+  --accent:#6366f1;
+  --accent-soft:#eef0ff;
+  --border:#e9e9e6;
+  --r:18px;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Fredoka',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── GRID VIEW ─────────────────────────── */
+#grid-view{
+  min-height:100vh;
+  will-change:transform,opacity;
+  transition:transform .5s cubic-bezier(.4,0,.2,1), opacity .4s ease;
+}
+
+#grid-view.exit{
+  transform:scale(.96) translateY(-16px);
+  opacity:0;
+  pointer-events:none;
+}
+
+/* Header */
+#header{
+  max-width:1100px;
+  margin:0 auto;
+  padding:52px 40px 0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+}
+
+#logo{
+  font-size:32px;
+  font-weight:600;
+  letter-spacing:-.5px;
+  color:var(--ink);
+  line-height:1;
+}
+
+#logo span{color:var(--accent)}
+
+#article-count-label{
+  font-size:13px;
+  color:var(--dim);
+  font-weight:300;
+  padding-bottom:4px;
+}
+
+/* Search */
+#search-wrap{
+  max-width:1100px;
+  margin:28px auto 0;
+  padding:0 40px;
+}
+
+#search{
+  width:100%;
+  padding:14px 20px;
+  border-radius:99px;
+  border:1.5px solid var(--border);
+  background:var(--card);
+  font-family:'Fredoka',sans-serif;
+  font-size:15px;
+  font-weight:300;
+  color:var(--ink);
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+
+#search::placeholder{color:var(--muted)}
+#search:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(99,102,241,.1);
+}
+
+/* Grid */
+#grid{
+  max-width:1100px;
+  margin:32px auto 80px;
+  padding:0 40px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:20px;
+}
+
+/* Card */
+.card{
+  background:var(--card);
+  border-radius:var(--r);
+  border:1px solid var(--border);
+  padding:26px 26px 22px;
+  cursor:pointer;
+  transition:transform .22s cubic-bezier(.4,0,.2,1),
+             box-shadow .22s ease,
+             border-color .2s;
+  will-change:transform,box-shadow;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(0,0,0,.08);
+  border-color:var(--muted);
+}
+
+.card:active{transform:translateY(-2px)}
+
+.card-title{
+  font-size:16.5px;
+  font-weight:600;
+  line-height:1.4;
+  letter-spacing:-.2px;
+  color:var(--ink);
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.card-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12.5px;
+  color:var(--dim);
+  font-weight:300;
+}
+
+.card-dot{
+  width:3px;height:3px;
+  border-radius:50%;
+  background:var(--muted);
+  flex-shrink:0;
+}
+
+.card-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:auto;
+  padding-top:4px;
+}
+
+.card-tag{
+  background:var(--bg);
+  border-radius:99px;
+  padding:3px 10px;
+  font-size:11.5px;
+  color:var(--dim);
+  font-weight:400;
+  transition:background .15s,color .15s;
+}
+
+.card:hover .card-tag{
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+
+.card-arrow{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  align-self:flex-end;
+  margin-top:auto;
+  transition:background .2s,transform .2s;
+  flex-shrink:0;
+}
+
+.card:hover .card-arrow{
+  background:var(--accent);
+  transform:translateX(3px);
+}
+
+.card:hover .card-arrow svg path{stroke:#fff}
+
+/* No results */
+#no-results{
+  display:none;
+  grid-column:1/-1;
+  text-align:center;
+  padding:80px 0;
+  color:var(--dim);
+  font-size:15px;
+  font-weight:300;
+}
+
+/* Stagger animation */
+.card{
+  opacity:0;
+  transform:translateY(20px);
+  animation:cardIn .4s cubic-bezier(.4,0,.2,1) forwards;
+}
+
+@keyframes cardIn{
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── ARTICLE VIEW ───────────────────────── */
+#article-view{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  overflow-y:auto;
+  z-index:50;
+  transform:translateY(32px);
+  opacity:0;
+  pointer-events:none;
+  transition:transform .45s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+  will-change:transform,opacity;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+
+#article-view.open{
+  transform:translateY(0);
+  opacity:1;
+  pointer-events:all;
+}
+
+#article-inner{
+  max-width:680px;
+  margin:0 auto;
+  padding:48px 40px 100px;
+}
+
+/* Back button */
+#back{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-size:13.5px;
+  font-weight:400;
+  color:var(--dim);
+  cursor:pointer;
+  background:none;
+  border:none;
+  font-family:'Fredoka',sans-serif;
+  padding:0;
+  margin-bottom:44px;
+  transition:color .15s,transform .2s;
+}
+
+#back:hover{
+  color:var(--ink);
+  transform:translateX(-3px);
+}
+
+/* FM Card */
+.fm{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:24px 26px;
+  margin-bottom:40px;
+}
+
+.fm-title{
+  font-size:24px;
+  font-weight:600;
+  line-height:1.3;
+  letter-spacing:-.3px;
+  margin-bottom:12px;
+}
+
+.fm-byline{
+  font-size:13px;
+  color:var(--dim);
+  font-weight:300;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.fm-byline strong{color:var(--ink);font-weight:500}
+
+.fm-sep{
+  width:3px;height:3px;
+  border-radius:50%;
+  background:var(--muted);
+}
+
+.fm-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:14px;
+}
+
+.fm-chip{
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-radius:99px;
+  padding:3px 11px;
+  font-size:12px;
+  font-weight:500;
+}
+
+.fm-link{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:12px;
+  color:var(--dim);
+  text-decoration:none;
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+  width:100%;
+  font-weight:300;
+  transition:color .15s;
+}
+
+.fm-link:hover{color:var(--accent)}
+
+/* Body prose */
+#prose{
+  animation:proseIn .4s .1s cubic-bezier(.4,0,.2,1) both;
+}
+
+@keyframes proseIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+#prose h1{font-size:26px;font-weight:600;line-height:1.25;letter-spacing:-.4px;margin:40px 0 12px;color:var(--ink)}
+#prose h1:first-child{margin-top:0}
+#prose h2{font-size:19px;font-weight:600;margin:36px 0 10px;color:var(--ink)}
+#prose h3{font-size:15.5px;font-weight:500;margin:26px 0 8px;color:var(--ink)}
+#prose p{font-size:15.5px;font-weight:300;line-height:1.85;color:#3c3c3c;margin-top:14px}
+#prose a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);transition:border-color .12s}
+#prose a:hover{border-color:var(--accent)}
+#prose img{max-width:100%;border-radius:14px;margin:24px 0;display:block}
+#prose blockquote{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;border-radius:0 12px 12px 0;margin:22px 0;color:#444;font-weight:300}
+#prose code{font-family:'SF Mono','Fira Code',monospace;background:#f0f0f0;padding:2px 6px;border-radius:6px;font-size:12.5px;color:#c7254e}
+#prose pre{background:#16161e;border-radius:14px;padding:20px 22px;overflow-x:auto;margin:22px 0}
+#prose pre code{background:none;color:#a8d8a8;padding:0;font-size:13px;line-height:1.7}
+#prose ul,#prose ol{padding-left:20px;margin-top:10px}
+#prose li{font-size:15.5px;font-weight:300;line-height:1.75;color:#3c3c3c;margin-bottom:3px}
+#prose hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+</style>
+</head>
+<body>
+
+<!-- ── GRID VIEW ── -->
+<div id="grid-view">
+  <div id="header">
+    <div>
+      <div id="logo">reads<span>.</span></div>
+      <div id="article-count-label">loading…</div>
+    </div>
+  </div>
+
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="Search articles, authors, tags…" autocomplete="off"/>
+  </div>
+
+  <div id="grid">
+    <div id="no-results">No articles match your search.</div>
+  </div>
+</div>
+
+<!-- ── ARTICLE VIEW ── -->
+<div id="article-view">
+  <div id="article-inner">
+    <button id="back" onclick="closeArticle()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </button>
+    <div id="fm-area"></div>
+    <div id="prose"></div>
+  </div>
+</div>
+
+<script>
+marked.setOptions({ breaks:true, gfm:true })
+
+let articles = []
+let articleOpen = false
+
+// ── Load ──────────────────────────────────
+async function load() {
+  try {
+    const res = await fetch('/api/articles')
+    articles  = await res.json()
+    articles.sort((a,b) => (b.meta.date||'').localeCompare(a.meta.date||''))
+    renderGrid(articles)
+    document.getElementById('article-count-label').textContent =
+      `${articles.length} article${articles.length!==1?'s':''}`
+  } catch {
+    document.getElementById('article-count-label').textContent = 'run server.py first'
+  }
+}
+
+// ── Grid ──────────────────────────────────
+function renderGrid(list) {
+  const grid = document.getElementById('grid')
+  const noRes = document.getElementById('no-results')
+  const existing = grid.querySelectorAll('.card')
+  existing.forEach(c => c.remove())
+
+  if (!list.length) { noRes.style.display='block'; return }
+  noRes.style.display='none'
+
+  list.forEach((art, i) => {
+    const el = document.createElement('div')
+    el.className = 'card'
+    el.style.animationDelay = `${i * 45}ms`
+
+    const title  = art.meta.title  || 'Untitled'
+    const author = art.meta.author || ''
+    const date   = art.meta.date   || ''
+    const tags   = (Array.isArray(art.meta.tags) ? art.meta.tags : []).slice(0,4)
+
+    const tagHTML = tags.map(t=>`<span class="card-tag">${esc(t)}</span>`).join('')
+
+    el.innerHTML = `
+      <div class="card-title">${esc(title)}</div>
+      <div class="card-meta">
+        ${author?`<span>${esc(author)}</span>`:''}
+        ${author&&date?'<span class="card-dot"></span>':''}
+        ${date?`<span>${date}</span>`:''}
+      </div>
+      ${tagHTML?`<div class="card-tags">${tagHTML}</div>`:''}
+      <div class="card-arrow">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <path d="M2.5 10.5l8-8M10.5 10.5V2.5H2.5" stroke="#aaa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    `
+    el.addEventListener('click', () => openArticle(art))
+    grid.appendChild(el)
+  })
+}
+
+// ── Search ────────────────────────────────
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase().trim()
+  if (!q) { renderGrid(articles); return }
+  const filtered = articles.filter(a => {
+    const title  = (a.meta.title  || '').toLowerCase()
+    const author = (a.meta.author || '').toLowerCase()
+    const tags   = (Array.isArray(a.meta.tags)?a.meta.tags:[]).join(' ').toLowerCase()
+    const body   = (a.body || '').toLowerCase()
+    return title.includes(q) || author.includes(q) || tags.includes(q) || body.includes(q)
+  })
+  renderGrid(filtered)
+})
+
+// ── Open article ──────────────────────────
+function openArticle(art) {
+  const meta    = art.meta
+  const tags    = Array.isArray(meta.tags) ? meta.tags : []
+  const imgBase = '/' + art.images_dir.replace(/\\/g,'/')
+
+  const body = (art.body||'')
+    .replace(/!\[([^\]]*)\]\(images\/([^)]+)\)/g,
+      (_,alt,fname) => `![${alt}](${imgBase}/${fname})`)
+
+  const titlePat = (meta.title||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&')
+  const cleaned  = body.replace(new RegExp(`^#\\s*${titlePat}\\s*\n?`,'m'),'').trim()
+
+  const chips = tags.map(t=>`<span class="fm-chip">${esc(t)}</span>`).join('')
+  const src   = meta.source
+    ? `<a href="${meta.source}" target="_blank" class="fm-link">↗ Read on Medium</a>`
+    : ''
+
+  document.getElementById('fm-area').innerHTML = `
+    <div class="fm">
+      <div class="fm-title">${esc(meta.title||'Untitled')}</div>
+      <div class="fm-byline">
+        ${meta.author?`<strong>${esc(meta.author)}</strong>`:''}
+        ${meta.author&&meta.date?'<span class="fm-sep"></span>':''}
+        ${meta.date?`<span>${meta.date}</span>`:''}
+      </div>
+      ${chips?`<div class="fm-chips">${chips}</div>`:''}
+      ${src}
+    </div>
+  `
+
+  document.getElementById('prose').innerHTML = marked.parse(cleaned)
+
+  // scroll article view to top instantly before showing
+  const av = document.getElementById('article-view')
+  av.scrollTop = 0
+
+  // trigger reflow so scroll-to-top is applied before transition
+  av.offsetHeight
+
+  document.getElementById('grid-view').classList.add('exit')
+  av.classList.add('open')
+  articleOpen = true
+
+  // push history so Back button works
+  history.pushState({ article: true }, '')
+}
+
+// ── Close article ─────────────────────────
+function closeArticle() {
+  const av = document.getElementById('article-view')
+  av.classList.remove('open')
+  document.getElementById('grid-view').classList.remove('exit')
+  articleOpen = false
+}
+
+// browser back button
+window.addEventListener('popstate', () => {
+  if (articleOpen) closeArticle()
+})
+
+// ── Util ──────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+load()
+</script>
+</body>
+</html>
