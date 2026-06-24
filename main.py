@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 
 from api.articles import router as articles_router
 from api.scrape import router as scrape_router
+from api.show_article import router as show_article_router
 
 app = FastAPI(
     title="Scraper API"
@@ -33,3 +34,4 @@ async def home(request: Request):
 
 app.include_router(articles_router)
 app.include_router(scrape_router)
+app.include_router(show_article_router)

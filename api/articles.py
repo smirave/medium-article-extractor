@@ -33,6 +33,7 @@ async def get_articles():
         ).strip()
 
         articles.append({
+            "slug": f.parent.name,
             "meta": meta,
             "body": body,
             "path": str(f),
