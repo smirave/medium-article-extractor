@@ -21,94 +21,152 @@
   --accent-soft:#eef0ff;
   --border:#e9e9e6;
   --r:18px;
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+}
+
+[data-theme="dark"]{
+  --bg:#111113;
+  --card:#1c1c1f;
+  --ink:#f0f0f0;
+  --dim:#666;
+  --muted:#444;
+  --accent:#818cf8;
+  --accent-soft:#1e1f3a;
+  --border:#2a2a2d;
+  --shadow:0 2px 12px rgba(0,0,0,.3);
 }
 
 html{scroll-behavior:smooth}
-
 body{
   font-family:'Fredoka',sans-serif;
   background:var(--bg);
   color:var(--ink);
   min-height:100vh;
   overflow-x:hidden;
+  transition:background .3s ease,color .3s ease;
 }
 
-/* ── GRID VIEW ─────────────────────────── */
-#grid-view{
-  min-height:100vh;
-  will-change:transform,opacity;
-  transition:transform .5s cubic-bezier(.4,0,.2,1), opacity .4s ease;
+/* ── TOPBAR ─────────────────────────────── */
+#topbar{
+  position:sticky;
+  top:0;
+  z-index:30;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  background:rgba(245,244,241,.85);
+  border-bottom:1px solid var(--border);
+  transition:background .3s,border-color .3s;
 }
 
-#grid-view.exit{
-  transform:scale(.96) translateY(-16px);
-  opacity:0;
-  pointer-events:none;
+[data-theme="dark"] #topbar{
+  background:rgba(17,17,19,.85);
 }
 
-/* Header */
-#header{
+#topbar-inner{
   max-width:1100px;
   margin:0 auto;
-  padding:52px 40px 0;
+  padding:0 40px;
+  height:60px;
   display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:24px;
+  align-items:center;
+  gap:16px;
 }
 
 #logo{
-  font-size:32px;
+  font-size:22px;
   font-weight:600;
-  letter-spacing:-.5px;
+  letter-spacing:-.4px;
   color:var(--ink);
   line-height:1;
+  flex-shrink:0;
 }
 
 #logo span{color:var(--accent)}
 
-#article-count-label{
-  font-size:13px;
-  color:var(--dim);
-  font-weight:300;
-  padding-bottom:4px;
-}
-
-/* Search */
-#search-wrap{
-  max-width:1100px;
-  margin:28px auto 0;
-  padding:0 40px;
-}
-
 #search{
-  width:100%;
-  padding:14px 20px;
+  flex:1;
+  padding:9px 16px;
   border-radius:99px;
   border:1.5px solid var(--border);
   background:var(--card);
   font-family:'Fredoka',sans-serif;
-  font-size:15px;
+  font-size:14px;
   font-weight:300;
   color:var(--ink);
   outline:none;
-  transition:border-color .2s, box-shadow .2s;
+  transition:border-color .2s,box-shadow .2s,background .3s;
 }
 
 #search::placeholder{color:var(--muted)}
-#search:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(99,102,241,.1);
+#search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+
+/* icon buttons */
+.icon-btn{
+  width:36px;height:36px;
+  border-radius:12px;
+  border:1.5px solid var(--border);
+  background:var(--card);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:background .2s,border-color .2s,transform .15s;
+  color:var(--dim);
 }
 
-/* Grid */
+.icon-btn:hover{
+  background:var(--accent-soft);
+  border-color:var(--accent);
+  color:var(--accent);
+  transform:scale(1.05);
+}
+
+/* add btn */
+#add-btn{
+  height:36px;
+  padding:0 16px;
+  border-radius:12px;
+  border:none;
+  background:var(--accent);
+  color:#fff;
+  font-family:'Fredoka',sans-serif;
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  flex-shrink:0;
+  transition:opacity .2s,transform .15s;
+}
+
+#add-btn:hover{opacity:.88;transform:scale(1.03)}
+
+/* ── GRID ───────────────────────────────── */
+#grid-view{
+  will-change:transform,opacity;
+  transition:transform .45s cubic-bezier(.4,0,.2,1),opacity .35s ease;
+}
+
+#grid-view.exit{
+  transform:scale(.97) translateY(-12px);
+  opacity:0;
+  pointer-events:none;
+}
+
+#count-bar{
+  max-width:1100px;
+  margin:28px auto 0;
+  padding:0 40px;
+  font-size:12.5px;
+  color:var(--dim);
+  font-weight:300;
+}
+
 #grid{
   max-width:1100px;
-  margin:32px auto 80px;
+  margin:20px auto 80px;
   padding:0 40px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  gap:20px;
+  grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+  gap:18px;
 }
 
 /* Card */
@@ -116,276 +174,241 @@ body{
   background:var(--card);
   border-radius:var(--r);
   border:1px solid var(--border);
-  padding:26px 26px 22px;
+  padding:24px 24px 20px;
   cursor:pointer;
+  display:flex;flex-direction:column;gap:12px;
   transition:transform .22s cubic-bezier(.4,0,.2,1),
-             box-shadow .22s ease,
-             border-color .2s;
+             box-shadow .22s ease,border-color .2s,
+             background .3s;
   will-change:transform,box-shadow;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+  opacity:0;
+  transform:translateY(18px);
+  animation:cardIn .38s cubic-bezier(.4,0,.2,1) forwards;
 }
+
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
 
 .card:hover{
   transform:translateY(-4px);
-  box-shadow:0 12px 40px rgba(0,0,0,.08);
+  box-shadow:0 14px 40px rgba(0,0,0,.09);
   border-color:var(--muted);
 }
 
-.card:active{transform:translateY(-2px)}
-
 .card-title{
-  font-size:16.5px;
-  font-weight:600;
-  line-height:1.4;
-  letter-spacing:-.2px;
-  color:var(--ink);
-  display:-webkit-box;
-  -webkit-line-clamp:3;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
+  font-size:16px;font-weight:600;
+  line-height:1.42;letter-spacing:-.2px;
+  display:-webkit-box;-webkit-line-clamp:3;
+  -webkit-box-orient:vertical;overflow:hidden;
 }
 
 .card-meta{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:12.5px;
-  color:var(--dim);
-  font-weight:300;
+  font-size:12px;color:var(--dim);font-weight:300;
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
 }
 
-.card-dot{
-  width:3px;height:3px;
-  border-radius:50%;
-  background:var(--muted);
-  flex-shrink:0;
-}
+.cdot{width:3px;height:3px;border-radius:50%;background:var(--muted);flex-shrink:0}
 
-.card-tags{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:auto;
-  padding-top:4px;
-}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:2px}
 
 .card-tag{
-  background:var(--bg);
-  border-radius:99px;
-  padding:3px 10px;
-  font-size:11.5px;
-  color:var(--dim);
-  font-weight:400;
+  background:var(--bg);border-radius:99px;
+  padding:2px 9px;font-size:11px;color:var(--dim);font-weight:400;
   transition:background .15s,color .15s;
 }
 
-.card:hover .card-tag{
-  background:var(--accent-soft);
-  color:var(--accent);
+.card:hover .card-tag{background:var(--accent-soft);color:var(--accent)}
+
+.card-footer{
+  display:flex;align-items:center;justify-content:flex-end;
+  margin-top:auto;
 }
 
 .card-arrow{
-  width:28px;height:28px;
-  border-radius:50%;
+  width:26px;height:26px;border-radius:50%;
   background:var(--bg);
   display:flex;align-items:center;justify-content:center;
-  align-self:flex-end;
-  margin-top:auto;
   transition:background .2s,transform .2s;
-  flex-shrink:0;
 }
 
-.card:hover .card-arrow{
-  background:var(--accent);
-  transform:translateX(3px);
-}
-
+.card:hover .card-arrow{background:var(--accent);transform:translate(2px,-2px)}
 .card:hover .card-arrow svg path{stroke:#fff}
 
-/* No results */
 #no-results{
-  display:none;
-  grid-column:1/-1;
-  text-align:center;
-  padding:80px 0;
-  color:var(--dim);
-  font-size:15px;
-  font-weight:300;
-}
-
-/* Stagger animation */
-.card{
-  opacity:0;
-  transform:translateY(20px);
-  animation:cardIn .4s cubic-bezier(.4,0,.2,1) forwards;
-}
-
-@keyframes cardIn{
-  to{opacity:1;transform:translateY(0)}
+  display:none;grid-column:1/-1;
+  text-align:center;padding:80px 0;
+  color:var(--dim);font-size:14px;font-weight:300;
 }
 
 /* ── ARTICLE VIEW ───────────────────────── */
 #article-view{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:var(--bg);
-  overflow-y:auto;
-  z-index:50;
-  transform:translateY(32px);
-  opacity:0;
-  pointer-events:none;
-  transition:transform .45s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+  overflow-y:auto;z-index:50;
+  transform:translateY(28px);opacity:0;pointer-events:none;
+  transition:transform .42s cubic-bezier(.4,0,.2,1),opacity .32s ease;
   will-change:transform,opacity;
-  scrollbar-width:thin;
-  scrollbar-color:var(--border) transparent;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
 
-#article-view.open{
-  transform:translateY(0);
-  opacity:1;
-  pointer-events:all;
-}
+#article-view.open{transform:translateY(0);opacity:1;pointer-events:all}
 
-#article-inner{
-  max-width:680px;
-  margin:0 auto;
-  padding:48px 40px 100px;
-}
+#article-inner{max-width:680px;margin:0 auto;padding:44px 40px 100px}
 
-/* Back button */
 #back{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  font-size:13.5px;
-  font-weight:400;
-  color:var(--dim);
-  cursor:pointer;
-  background:none;
-  border:none;
-  font-family:'Fredoka',sans-serif;
-  padding:0;
-  margin-bottom:44px;
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:13px;font-weight:400;color:var(--dim);
+  cursor:pointer;background:none;border:none;
+  font-family:'Fredoka',sans-serif;padding:0;margin-bottom:40px;
   transition:color .15s,transform .2s;
 }
+#back:hover{color:var(--ink);transform:translateX(-3px)}
 
-#back:hover{
-  color:var(--ink);
-  transform:translateX(-3px);
-}
-
-/* FM Card */
 .fm{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--r);
-  padding:24px 26px;
-  margin-bottom:40px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px 24px;margin-bottom:36px;
+  transition:background .3s,border-color .3s;
 }
 
-.fm-title{
-  font-size:24px;
-  font-weight:600;
-  line-height:1.3;
-  letter-spacing:-.3px;
-  margin-bottom:12px;
-}
-
-.fm-byline{
-  font-size:13px;
-  color:var(--dim);
-  font-weight:300;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
+.fm-title{font-size:22px;font-weight:600;line-height:1.3;letter-spacing:-.3px;margin-bottom:11px}
+.fm-byline{font-size:12.5px;color:var(--dim);font-weight:300;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .fm-byline strong{color:var(--ink);font-weight:500}
-
-.fm-sep{
-  width:3px;height:3px;
-  border-radius:50%;
-  background:var(--muted);
-}
-
-.fm-chips{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:14px;
-}
-
-.fm-chip{
-  background:var(--accent-soft);
-  color:var(--accent);
-  border-radius:99px;
-  padding:3px 11px;
-  font-size:12px;
-  font-weight:500;
-}
-
-.fm-link{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  font-size:12px;
-  color:var(--dim);
-  text-decoration:none;
-  margin-top:16px;
-  padding-top:16px;
-  border-top:1px solid var(--border);
-  width:100%;
-  font-weight:300;
-  transition:color .15s;
-}
-
+.fm-sep{width:3px;height:3px;border-radius:50%;background:var(--muted)}
+.fm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fm-chip{background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:3px 11px;font-size:11.5px;font-weight:500}
+.fm-link{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--dim);text-decoration:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);width:100%;font-weight:300;transition:color .15s}
 .fm-link:hover{color:var(--accent)}
 
-/* Body prose */
-#prose{
-  animation:proseIn .4s .1s cubic-bezier(.4,0,.2,1) both;
-}
-
-@keyframes proseIn{
-  from{opacity:0;transform:translateY(12px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-#prose h1{font-size:26px;font-weight:600;line-height:1.25;letter-spacing:-.4px;margin:40px 0 12px;color:var(--ink)}
+#prose{animation:proseIn .38s .08s cubic-bezier(.4,0,.2,1) both}
+@keyframes proseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+#prose h1{font-size:25px;font-weight:600;line-height:1.25;letter-spacing:-.4px;margin:40px 0 12px;color:var(--ink)}
 #prose h1:first-child{margin-top:0}
-#prose h2{font-size:19px;font-weight:600;margin:36px 0 10px;color:var(--ink)}
-#prose h3{font-size:15.5px;font-weight:500;margin:26px 0 8px;color:var(--ink)}
-#prose p{font-size:15.5px;font-weight:300;line-height:1.85;color:#3c3c3c;margin-top:14px}
+#prose h2{font-size:19px;font-weight:600;margin:34px 0 10px;color:var(--ink)}
+#prose h3{font-size:15.5px;font-weight:500;margin:24px 0 7px;color:var(--ink)}
+#prose p{font-size:15.5px;font-weight:300;line-height:1.85;color:var(--ink);opacity:.82;margin-top:13px}
 #prose a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);transition:border-color .12s}
 #prose a:hover{border-color:var(--accent)}
-#prose img{max-width:100%;border-radius:14px;margin:24px 0;display:block}
-#prose blockquote{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;border-radius:0 12px 12px 0;margin:22px 0;color:#444;font-weight:300}
-#prose code{font-family:'SF Mono','Fira Code',monospace;background:#f0f0f0;padding:2px 6px;border-radius:6px;font-size:12.5px;color:#c7254e}
-#prose pre{background:#16161e;border-radius:14px;padding:20px 22px;overflow-x:auto;margin:22px 0}
+#prose img{max-width:100%;border-radius:14px;margin:22px 0;display:block}
+#prose blockquote{border-left:3px solid var(--accent);background:var(--accent-soft);padding:13px 17px;border-radius:0 12px 12px 0;margin:20px 0;font-weight:300}
+#prose code{font-family:'SF Mono','Fira Code',monospace;background:var(--border);padding:2px 6px;border-radius:6px;font-size:12.5px;color:var(--accent)}
+#prose pre{background:#16161e;border-radius:14px;padding:20px 22px;overflow-x:auto;margin:20px 0}
 #prose pre code{background:none;color:#a8d8a8;padding:0;font-size:13px;line-height:1.7}
 #prose ul,#prose ol{padding-left:20px;margin-top:10px}
-#prose li{font-size:15.5px;font-weight:300;line-height:1.75;color:#3c3c3c;margin-bottom:3px}
-#prose hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+#prose li{font-size:15.5px;font-weight:300;line-height:1.75;opacity:.82;margin-bottom:3px}
+#prose hr{border:none;border-top:1px solid var(--border);margin:30px 0}
+
+/* ── ADD MODAL ──────────────────────────── */
+#modal-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.4);
+  backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease;
+}
+
+#modal-overlay.open{opacity:1;pointer-events:all}
+
+#modal{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:32px;
+  width:100%;max-width:480px;
+  margin:0 20px;
+  transform:translateY(16px) scale(.97);
+  transition:transform .3s cubic-bezier(.4,0,.2,1),background .3s,border-color .3s;
+  box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+#modal-overlay.open #modal{transform:translateY(0) scale(1)}
+
+#modal h2{font-size:18px;font-weight:600;margin-bottom:6px}
+#modal p{font-size:13px;color:var(--dim);font-weight:300;margin-bottom:22px}
+
+#url-input{
+  width:100%;padding:12px 16px;
+  border-radius:12px;
+  border:1.5px solid var(--border);
+  background:var(--bg);
+  font-family:'Fredoka',sans-serif;
+  font-size:14px;font-weight:300;color:var(--ink);
+  outline:none;margin-bottom:16px;
+  transition:border-color .2s,box-shadow .2s;
+}
+
+#url-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+#url-input::placeholder{color:var(--muted)}
+
+#modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+.modal-btn{
+  padding:9px 20px;border-radius:10px;
+  font-family:'Fredoka',sans-serif;font-size:14px;font-weight:500;
+  cursor:pointer;border:none;transition:opacity .15s,transform .15s;
+}
+.modal-btn:hover{opacity:.85;transform:scale(1.03)}
+.modal-btn.cancel{background:var(--bg);color:var(--dim)}
+.modal-btn.confirm{background:var(--accent);color:#fff}
+
+/* ── LOADING STATE ──────────────────────── */
+#loading-overlay{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;
+  padding:20px 0 8px;
+}
+
+.spinner{
+  width:36px;height:36px;
+  border:3px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .75s linear infinite;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.loading-text{font-size:14px;font-weight:300;color:var(--dim);text-align:center;line-height:1.6}
+.loading-url{font-size:12px;color:var(--muted);margin-top:4px;word-break:break-all;text-align:center}
+
+/* ── TOAST ──────────────────────────────── */
+#toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);
+  z-index:200;
+  background:var(--ink);color:var(--bg);
+  padding:11px 22px;border-radius:99px;
+  font-size:13.5px;font-weight:400;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;
+  white-space:nowrap;
+}
+
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
+<!-- ── TOPBAR ── -->
+<div id="topbar">
+  <div id="topbar-inner">
+    <div id="logo">reads<span>.</span></div>
+    <input id="search" type="text" placeholder="Search articles…" autocomplete="off"/>
+    <button class="icon-btn" id="theme-btn" title="Toggle dark mode" onclick="toggleTheme()">
+      <svg id="theme-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1v1M8 14v1M1 8H2M14 8h1M3.05 3.05l.7.7M12.25 12.25l.7.7M3.05 12.95l.7-.7M12.25 3.75l.7-.7M11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button id="add-btn" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1v12M1 7h12" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Add
+    </button>
+  </div>
+</div>
+
 <!-- ── GRID VIEW ── -->
 <div id="grid-view">
-  <div id="header">
-    <div>
-      <div id="logo">reads<span>.</span></div>
-      <div id="article-count-label">loading…</div>
-    </div>
-  </div>
-
-  <div id="search-wrap">
-    <input id="search" type="text" placeholder="Search articles, authors, tags…" autocomplete="off"/>
-  </div>
-
+  <div id="count-bar">loading…</div>
   <div id="grid">
     <div id="no-results">No articles match your search.</div>
   </div>
@@ -405,100 +428,165 @@ body{
   </div>
 </div>
 
+<!-- ── ADD MODAL ── -->
+<div id="modal-overlay" onclick="overlayClick(event)">
+  <div id="modal">
+    <div id="modal-default">
+      <h2>Add article</h2>
+      <p>Paste a Medium URL and we'll scrape it for you.</p>
+      <input id="url-input" type="url" placeholder="https://medium.com/…" autocomplete="off"/>
+      <div id="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn confirm" onclick="startScrape()">Fetch article</button>
+      </div>
+    </div>
+    <div id="modal-loading" style="display:none">
+      <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div>
+          <div class="loading-text">Fetching article…</div>
+          <div class="loading-url" id="loading-url-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast"></div>
+
 <script>
-marked.setOptions({ breaks:true, gfm:true })
+marked.setOptions({breaks:true,gfm:true})
 
-let articles = []
+let articles    = []
 let articleOpen = false
+let pollTimer   = null
 
-// ── Load ──────────────────────────────────
-async function load() {
+// ── Theme ────────────────────────────────
+const prefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches
+let dark = localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && prefersDark)
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '')
+  const icon = document.getElementById('theme-icon')
+  icon.innerHTML = dark
+    ? `<path d="M12.5 9.5A5 5 0 0 1 6.5 3.5a5 5 0 1 0 6 6Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M8 1v1M8 14v1M1 8H2M14 8h1M3.05 3.05l.7.7M12.25 12.25l.7.7M3.05 12.95l.7-.7M12.25 3.75l.7-.7M11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`
+}
+
+function toggleTheme() {
+  dark = !dark
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+  applyTheme()
+}
+
+applyTheme()
+
+// ── Load articles ────────────────────────
+async function load(silent=false) {
   try {
     const res = await fetch('/api/articles')
     articles  = await res.json()
-    articles.sort((a,b) => (b.meta.date||'').localeCompare(a.meta.date||''))
+    articles.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''))
     renderGrid(articles)
-    document.getElementById('article-count-label').textContent =
+    document.getElementById('count-bar').textContent =
       `${articles.length} article${articles.length!==1?'s':''}`
-  } catch {
-    document.getElementById('article-count-label').textContent = 'run server.py first'
+  } catch(error) {
+    console.log(error)
+    if (!silent)
+      document.getElementById('count-bar').textContent = 'Start server.py first'
   }
 }
 
-// ── Grid ──────────────────────────────────
+// ── Grid ─────────────────────────────────
 function renderGrid(list) {
-  const grid = document.getElementById('grid')
+  const grid  = document.getElementById('grid')
   const noRes = document.getElementById('no-results')
-  const existing = grid.querySelectorAll('.card')
-  existing.forEach(c => c.remove())
+  grid.querySelectorAll('.card').forEach(c=>c.remove())
 
   if (!list.length) { noRes.style.display='block'; return }
   noRes.style.display='none'
 
-  list.forEach((art, i) => {
-    const el = document.createElement('div')
-    el.className = 'card'
-    el.style.animationDelay = `${i * 45}ms`
+  list.forEach((art,i) => {
+    const el    = document.createElement('div')
+    el.className= 'card'
+    el.style.animationDelay = `${i*40}ms`
 
     const title  = art.meta.title  || 'Untitled'
     const author = art.meta.author || ''
     const date   = art.meta.date   || ''
-    const tags   = (Array.isArray(art.meta.tags) ? art.meta.tags : []).slice(0,4)
+    const tags   = (Array.isArray(art.meta.tags)?art.meta.tags:[]).slice(0,4)
+    const tagH   = tags.map(t=>`<span class="card-tag">${esc(t)}</span>`).join('')
 
-    const tagHTML = tags.map(t=>`<span class="card-tag">${esc(t)}</span>`).join('')
-
-    el.innerHTML = `
+    el.innerHTML=`
       <div class="card-title">${esc(title)}</div>
       <div class="card-meta">
         ${author?`<span>${esc(author)}</span>`:''}
-        ${author&&date?'<span class="card-dot"></span>':''}
+        ${author&&date?'<span class="cdot"></span>':''}
         ${date?`<span>${date}</span>`:''}
       </div>
-      ${tagHTML?`<div class="card-tags">${tagHTML}</div>`:''}
-      <div class="card-arrow">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <path d="M2.5 10.5l8-8M10.5 10.5V2.5H2.5" stroke="#aaa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      ${tagH?`<div class="card-tags">${tagH}</div>`:''}
+      <div class="card-footer">
+        <div class="card-arrow">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 10L10 2M10 8V2H4" stroke="#aaa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
       </div>
     `
-    el.addEventListener('click', () => openArticle(art))
+    el.addEventListener('click',()=>openArticle(art))
     grid.appendChild(el)
   })
 }
 
-// ── Search ────────────────────────────────
+function esc(str = '') {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+// FIX: normalize text for Unicode-safe search (handles Persian, Arabic, accented chars)
+function normalizeSearch(str) {
+  return String(str)
+    .normalize('NFC')
+    .toLowerCase()
+    .trim()
+}
+
+// ── Search ───────────────────────────────
 document.getElementById('search').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase().trim()
+  const q = normalizeSearch(e.target.value)
   if (!q) { renderGrid(articles); return }
-  const filtered = articles.filter(a => {
-    const title  = (a.meta.title  || '').toLowerCase()
-    const author = (a.meta.author || '').toLowerCase()
-    const tags   = (Array.isArray(a.meta.tags)?a.meta.tags:[]).join(' ').toLowerCase()
-    const body   = (a.body || '').toLowerCase()
-    return title.includes(q) || author.includes(q) || tags.includes(q) || body.includes(q)
-  })
-  renderGrid(filtered)
+  renderGrid(articles.filter(a => {
+    const t  = normalizeSearch(a.meta.title  || '')
+    const au = normalizeSearch(a.meta.author || '')
+    const tg = normalizeSearch((Array.isArray(a.meta.tags)?a.meta.tags:[]).join(' '))
+    const b  = normalizeSearch(a.body || '')
+    return t.includes(q) || au.includes(q) || tg.includes(q) || b.includes(q)
+  }))
 })
 
-// ── Open article ──────────────────────────
+// ── Open / close article ─────────────────
 function openArticle(art) {
   const meta    = art.meta
-  const tags    = Array.isArray(meta.tags) ? meta.tags : []
-  const imgBase = '/' + art.images_dir.replace(/\\/g,'/')
+  const tags    = Array.isArray(meta.tags)?meta.tags:[]
+  const imgBase = '/'+art.images_dir.replace(/\\/g,'/')
 
   const body = (art.body||'')
     .replace(/!\[([^\]]*)\]\(images\/([^)]+)\)/g,
-      (_,alt,fname) => `![${alt}](${imgBase}/${fname})`)
+      (_,alt,fname)=>`![${alt}](${imgBase}/${fname})`)
 
   const titlePat = (meta.title||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&')
   const cleaned  = body.replace(new RegExp(`^#\\s*${titlePat}\\s*\n?`,'m'),'').trim()
 
   const chips = tags.map(t=>`<span class="fm-chip">${esc(t)}</span>`).join('')
   const src   = meta.source
-    ? `<a href="${meta.source}" target="_blank" class="fm-link">↗ Read on Medium</a>`
-    : ''
+    ? `<a href="${meta.source}" target="_blank" class="fm-link">↗ Read on Medium</a>` : ''
 
-  document.getElementById('fm-area').innerHTML = `
+  document.getElementById('fm-area').innerHTML=`
     <div class="fm">
       <div class="fm-title">${esc(meta.title||'Untitled')}</div>
       <div class="fm-byline">
@@ -511,42 +599,123 @@ function openArticle(art) {
     </div>
   `
 
-  document.getElementById('prose').innerHTML = marked.parse(cleaned)
-
-  // scroll article view to top instantly before showing
   const av = document.getElementById('article-view')
   av.scrollTop = 0
-
-  // trigger reflow so scroll-to-top is applied before transition
   av.offsetHeight
 
+  document.getElementById('prose').innerHTML = marked.parse(cleaned)
   document.getElementById('grid-view').classList.add('exit')
   av.classList.add('open')
   articleOpen = true
-
-  // push history so Back button works
-  history.pushState({ article: true }, '')
+  history.pushState({article:true},'')
 }
 
-// ── Close article ─────────────────────────
 function closeArticle() {
-  const av = document.getElementById('article-view')
-  av.classList.remove('open')
+  document.getElementById('article-view').classList.remove('open')
   document.getElementById('grid-view').classList.remove('exit')
   articleOpen = false
 }
 
-// browser back button
-window.addEventListener('popstate', () => {
-  if (articleOpen) closeArticle()
+window.addEventListener('popstate', ()=>{ if(articleOpen) closeArticle() })
+
+// ── Add modal ────────────────────────────
+// FIX: always fully reset modal state on open
+function resetModal() {
+  document.getElementById('modal-default').style.display = 'block'
+  document.getElementById('modal-loading').style.display = 'none'
+  document.getElementById('url-input').value = ''
+}
+
+function openModal() {
+  resetModal()
+  document.getElementById('modal-overlay').classList.add('open')
+  setTimeout(()=>document.getElementById('url-input').focus(), 280)
+}
+
+// FIX: always clear pollTimer on close to prevent memory leak + double-poll
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open')
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+  // reset after close animation finishes
+  setTimeout(resetModal, 300)
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal()
+}
+
+document.addEventListener('keydown', e=>{
+  if (e.key==='Escape') closeModal()
+  if (e.key==='Enter' && document.getElementById('modal-overlay').classList.contains('open'))
+    startScrape()
 })
 
-// ── Util ──────────────────────────────────
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+async function startScrape() {
+  const url = document.getElementById('url-input').value.trim()
+  if (!url || !url.startsWith('http')) {
+    shake(document.getElementById('url-input')); return
+  }
+
+  // FIX: prevent starting a second scrape if one is running
+  if (pollTimer) return
+
+  // show loading
+  document.getElementById('modal-default').style.display = 'none'
+  document.getElementById('modal-loading').style.display  = 'block'
+  document.getElementById('loading-url-text').textContent = url
+
+  try {
+    const r = await fetch('/api/scrape',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    })
+    const d = await r.json()
+    if (!d.ok) throw new Error(d.error||'Failed')
+  } catch(e) {
+    closeModal()
+    toast('⚠ ' + e.message); return
+  }
+
+  // poll until done
+  pollTimer = setInterval(async ()=>{
+    try {
+      const s = await (await fetch('/api/scrape/status')).json()
+      if (!s.running) {
+        clearInterval(pollTimer); pollTimer=null
+        closeModal()
+        await load(true)
+        toast('✓ Article added!')
+      }
+    } catch {
+      // FIX: also clear timer on network error during polling
+      clearInterval(pollTimer); pollTimer=null
+      closeModal()
+      toast('⚠ Connection lost')
+    }
+  }, 1200)
 }
+
+function shake(el) {
+  el.style.animation='none'; el.offsetHeight
+  el.style.animation='shake .35s ease'
+}
+
+// ── Toast ────────────────────────────────
+function toast(msg, dur=2800) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  setTimeout(()=>t.classList.remove('show'), dur)
+}
+
+// ── Shake keyframe ───────────────────────
+const st = document.createElement('style')
+st.textContent='@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}'
+document.head.appendChild(st)
 
 load()
 </script>

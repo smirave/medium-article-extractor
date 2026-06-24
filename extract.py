@@ -6,6 +6,7 @@ import time
 import shutil
 import requests
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
@@ -60,6 +61,13 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 def sanitize(name: str) -> str:
     name = re.sub(r'[\\/*?:"<>|]', "", name)
     return re.sub(r"\s+", "_", name.strip())[:80]
+
+
+def normalize_url(src: str) -> str:
+    """Fix protocol-relative URLs and other common issues."""
+    if src.startswith("//"):
+        return "https:" + src
+    return src
 
 
 def fetch(url: str) -> dict:
@@ -119,7 +127,7 @@ def fetch(url: str) -> dict:
     return {"title": title, "author": author, "date": date, "tags": tags, "url": url, "body": body}
 
 
-def download_img(url: str, save_dir: Path, idx: int, total: int) -> str | None:
+def download_img(url: str, save_dir: Path, idx: int, total: int) -> Optional[str]:
     try:
         ext = Path(urlparse(url).path).suffix.lower()
         if ext not in IMAGE_EXTS:
@@ -141,7 +149,7 @@ def download_img(url: str, save_dir: Path, idx: int, total: int) -> str | None:
         return None
 
 
-def to_markdown(data: dict, out_dir: Path) -> tuple[str, int]:
+def to_markdown(data: dict, out_dir: Path) -> tuple:
     imgs_dir = out_dir / "images"
     imgs_dir.mkdir(parents=True, exist_ok=True)
 
@@ -151,51 +159,73 @@ def to_markdown(data: dict, out_dir: Path) -> tuple[str, int]:
     def node(n) -> str:
         if isinstance(n, str):
             return n
-        tag = n.name
-        if not tag or tag in ["script", "style", "nav", "footer", "button", "svg"]:
+        t = n.name
+        if not t or t in ["script", "style", "nav", "footer", "button", "svg"]:
             return ""
 
         ch = "".join(node(c) for c in n.children).strip()
 
-        match tag:
-            case "h1":          return f"\n\n# {ch}\n\n"
-            case "h2":          return f"\n\n## {ch}\n\n"
-            case "h3":          return f"\n\n### {ch}\n\n"
-            case "h4":          return f"\n\n#### {ch}\n\n"
-            case "p":           return f"\n\n{ch}\n\n" if ch else ""
-            case "br":          return "\n"
-            case "hr":          return "\n\n---\n\n"
-            case "figure":      return f"\n\n{ch}\n\n"
-            case "strong" | "b": return f"**{ch}**"
-            case "em"     | "i": return f"*{ch}*"
-            case "blockquote":
-                return "\n\n" + "\n".join(f"> {l}" for l in ch.splitlines() if l.strip()) + "\n\n"
-            case "code":
-                return f"`{ch}`" if n.parent and n.parent.name != "pre" else ch
-            case "pre":
-                c    = n.find("code")
-                lang = next((cl.replace("language-", "") for cl in (c.get("class") or []) if cl.startswith("language-")), "") if c else ""
-                body = c.get_text() if c else n.get_text()
-                return f"\n\n```{lang}\n{body}\n```\n\n"
-            case "a":
-                href = n.get("href", "")
-                return f"[{ch}]({href})" if href and ch else ch
-            case "img":
-                src = n.get("src") or n.get("data-src") or n.get("data-lazy-src") or ""
-                alt = n.get("alt", "image")
-                if not src or src.startswith("data:"):
-                    return ""
-                if src.startswith("//"):
-                    src = "https:" + src
-                img_counter[0] += 1
-                path = download_img(src, imgs_dir, img_counter[0], total_imgs) or src
-                return f"\n\n![{alt}]({path})\n\n"
-            case "ul":
-                return "\n" + "\n".join(f"- {''.join(node(c) for c in li.children).strip()}" for li in n.find_all("li", recursive=False)) + "\n"
-            case "ol":
-                return "\n" + "\n".join(f"{i}. {''.join(node(c) for c in li.children).strip()}" for i, li in enumerate(n.find_all("li", recursive=False), 1)) + "\n"
-            case _:
-                return f"\n{ch}\n" if ch else ""
+        if t == "h1":
+            return f"\n\n# {ch}\n\n"
+        elif t == "h2":
+            return f"\n\n## {ch}\n\n"
+        elif t == "h3":
+            return f"\n\n### {ch}\n\n"
+        elif t == "h4":
+            return f"\n\n#### {ch}\n\n"
+        elif t == "p":
+            return f"\n\n{ch}\n\n" if ch else ""
+        elif t == "br":
+            return "\n"
+        elif t == "hr":
+            return "\n\n---\n\n"
+        elif t == "figure":
+            return f"\n\n{ch}\n\n"
+        elif t in ("strong", "b"):
+            return f"**{ch}**"
+        elif t in ("em", "i"):
+            return f"*{ch}*"
+        elif t == "blockquote":
+            return "\n\n" + "\n".join(f"> {l}" for l in ch.splitlines() if l.strip()) + "\n\n"
+        elif t == "code":
+            return f"`{ch}`" if n.parent and n.parent.name != "pre" else ch
+        elif t == "pre":
+            c    = n.find("code")
+            lang = next((cl.replace("language-", "") for cl in (c.get("class") or []) if cl.startswith("language-")), "") if c else ""
+            body = c.get_text() if c else n.get_text()
+            return f"\n\n```{lang}\n{body}\n```\n\n"
+        elif t == "a":
+            href = n.get("href", "")
+            return f"[{ch}]({href})" if href and ch else ch
+        elif t == "img":
+            # FIX: handle all common lazy-load attributes + normalize protocol-relative URLs
+            src = (
+                n.get("src") or
+                n.get("data-src") or
+                n.get("data-lazy-src") or
+                n.get("data-original") or
+                n.get("data-srcset", "").split(" ")[0] or
+                ""
+            )
+            alt = n.get("alt", "image")
+            if not src or src.startswith("data:"):
+                return ""
+            src = normalize_url(src)
+            img_counter[0] += 1
+            path = download_img(src, imgs_dir, img_counter[0], total_imgs) or src
+            return f"\n\n![{alt}]({path})\n\n"
+        elif t == "ul":
+            return "\n" + "\n".join(
+                f"- {''.join(node(c) for c in li.children).strip()}"
+                for li in n.find_all("li", recursive=False)
+            ) + "\n"
+        elif t == "ol":
+            return "\n" + "\n".join(
+                f"{i}. {''.join(node(c) for c in li.children).strip()}"
+                for i, li in enumerate(n.find_all("li", recursive=False), 1)
+            ) + "\n"
+        else:
+            return f"\n{ch}\n" if ch else ""
 
     if not data["body"]:
         return "No content found.", 0
@@ -212,8 +242,18 @@ def to_markdown(data: dict, out_dir: Path) -> tuple[str, int]:
 
 
 def frontmatter(data: dict) -> str:
+    # FIX: properly escape both single and double quotes in title
+    title_escaped = data["title"].replace("\\", "\\\\").replace('"', '\\"')
     tags = ", ".join(f'"{t}"' for t in data["tags"])
-    return f'---\ntitle: "{data["title"].replace(chr(34), chr(39))}"\nauthor: "{data["author"]}"\ndate: "{data["date"]}"\nsource: "{data["url"]}"\ntags: [{tags}]\n---\n\n'
+    return (
+        f'---\n'
+        f'title: "{title_escaped}"\n'
+        f'author: "{data["author"]}"\n'
+        f'date: "{data["date"]}"\n'
+        f'source: "{data["url"]}"\n'
+        f'tags: [{tags}]\n'
+        f'---\n\n'
+    )
 
 
 def scrape(url: str):
@@ -239,7 +279,7 @@ def scrape(url: str):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(f"\n  {YLW}Usage:{R}  python medium_scraper.py <url>\n")
+        print(f"\n  {YLW}Usage:{R}  python extract.py <url>\n")
         sys.exit(1)
 
     url = sys.argv[1]
